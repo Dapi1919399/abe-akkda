@@ -46,15 +46,17 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+    print("وصلت رسالة من", message.author, "| مرفقات:", len(message.attachments))
     if message.author.bot or not message.guild:
         return
     if not message.attachments:
         return
 
     perms = message.author.guild_permissions
+    print("admin:", perms.administrator, "| manage_messages:", perms.manage_messages)
     if perms.administrator or perms.manage_messages:
         return
-
+    
     for a in message.attachments:
         ext = os.path.splitext(a.filename.lower())[1]
 
