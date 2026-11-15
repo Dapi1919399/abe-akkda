@@ -4,7 +4,10 @@ from dotenv import load_dotenv
 import hashlib
 
 BAD_HASHES = {
-    "20BD050CF409A23A516DE47493D1691E8E9ADB0BDF93CC1A4FE1914B378689BA",
+    h.strip().lower()
+    for h in [
+        "20BD050CF409A23A516DE47493D1691E8E9ADB0BDF93CC1A4FE1914B378689BA",
+    ]
 }
 
 load_dotenv()
@@ -75,9 +78,10 @@ async def on_message(message):
                 )
             return
 
-        if ext in ALLOWED and a.size < 8_000_000:
             data = await a.read()
-            if hashlib.sha256(data).hexdigest() in BAD_HASHES:
+            h = hashlib.sha256(data).hexdigest()
+            print("HASH:", a.filename, h)
+            if h in BAD_HASHES:
                 try:
                     await message.delete()
                     await message.author.ban(
