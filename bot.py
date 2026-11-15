@@ -1,7 +1,7 @@
 import os
+import hashlib
 import discord
 from dotenv import load_dotenv
-import hashlib
 
 BAD_HASHES = {
     h.strip().lower()
@@ -46,17 +46,15 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    print("وصلت رسالة من", message.author, "| مرفقات:", len(message.attachments))
     if message.author.bot or not message.guild:
         return
     if not message.attachments:
         return
 
     perms = message.author.guild_permissions
-    print("admin:", perms.administrator, "| manage_messages:", perms.manage_messages)
     if perms.administrator or perms.manage_messages:
         return
-    
+
     for a in message.attachments:
         ext = os.path.splitext(a.filename.lower())[1]
 
@@ -81,6 +79,7 @@ async def on_message(message):
                 )
             return
 
+        if ext in ALLOWED and a.size < 8_000_000:
             data = await a.read()
             h = hashlib.sha256(data).hexdigest()
             print("HASH:", a.filename, h)
@@ -92,10 +91,10 @@ async def on_message(message):
                         delete_message_seconds=3600,
                     )
                     await send_log(message.guild, f"تم حظر {message.author} بسبب صورة نصب")
-                except discord.HTTPException:
-                    pass
+                except discord.HTTPException as e:
+                    print("خطأ:", e)
                 return
- 
+
         if ext not in ALLOWED:
             try:
                 await message.delete()
