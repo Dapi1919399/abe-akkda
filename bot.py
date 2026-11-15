@@ -1,6 +1,11 @@
 import os
 import discord
 from dotenv import load_dotenv
+import hashlib
+
+BAD_HASHES = {
+    "20BD050CF409A23A516DE47493D1691E8E9ADB0BDF93CC1A4FE1914B378689BA ",
+}
 
 load_dotenv()
 
@@ -70,6 +75,20 @@ async def on_message(message):
                 )
             return
 
+        if ext in ALLOWED and a.size < 8_000_000:
+            data = await a.read()
+            if hashlib.sha256(data).hexdigest() in BAD_HASHES:
+                try:
+                    await message.delete()
+                    await message.author.ban(
+                        reason="صورة نصب معروفة",
+                        delete_message_seconds=3600,
+                    )
+                    await send_log(message.guild, f"تم حظر {message.author} بسبب صورة نصب")
+                except discord.HTTPException:
+                    pass
+                return
+ 
         if ext not in ALLOWED:
             try:
                 await message.delete()
